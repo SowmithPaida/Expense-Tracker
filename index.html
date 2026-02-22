@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Personal Finance Tracker — Manage Your Money Wisely</title>
+  <link rel="stylesheet" href="styles.css" />
+  <!-- Chart.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@300;400;500;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+<!-- ===================== LOGIN PAGE ===================== -->
+<div id="login-page" class="login-page">
+  <div class="login-bg-grid"></div>
+  <div class="login-container">
+    <div class="login-logo">
+      <div class="wallet-icon-lg">
+        <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="48" height="48" rx="12" fill="#fff"/>
+          <path d="M8 18C8 15.8 9.8 14 12 14H36C38.2 14 40 15.8 40 18V34C40 36.2 38.2 38 36 38H12C9.8 38 8 36.2 8 34V18Z" fill="#111"/>
+          <path d="M8 20H40V26H8V20Z" fill="#333"/>
+          <circle cx="33" cy="30" r="3" fill="#D4AF37"/>
+        </svg>
+      </div>
+      <h1 class="login-title">Personal Finance Tracker</h1>
+      <p class="login-tagline">Manage Your Money Wisely</p>
+    </div>
+    <div class="login-card">
+      <h2>Welcome Back</h2>
+      <p class="login-sub">Sign in to your financial dashboard</p>
+      <div id="login-error" class="login-error hidden">Invalid credentials. Try demo/demo123</div>
+      <div class="form-group">
+        <label>Username</label>
+        <input type="text" id="login-user" placeholder="Enter username" autocomplete="username"/>
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="login-pass" placeholder="Enter password" autocomplete="current-password"/>
+      </div>
+      <button class="btn-primary btn-full" onclick="handleLogin()">Sign In</button>
+      <p class="login-hint">Demo credentials: <span class="mono">demo / demo123</span></p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== MAIN APP ===================== -->
+<div id="app" class="app hidden">
+
+  <!-- NAVBAR -->
+  <nav class="navbar" id="navbar">
+    <div class="nav-brand">
+      <div class="wallet-icon">
+        <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="40" height="40" rx="8" fill="#fff"/>
+          <path d="M6 15c0-1.8 1.5-3.3 3.3-3.3h21.4C32.5 11.7 34 13.2 34 15v14.2c0 1.8-1.5 3.3-3.3 3.3H9.3C7.5 32.5 6 31 6 29.2V15Z" fill="#111"/>
+          <path d="M6 17.5h28V22H6v-4.5Z" fill="#333"/>
+          <circle cx="28" cy="26" r="2.5" fill="#D4AF37"/>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <span class="brand-name">Personal Finance Tracker</span>
+        <span class="brand-tagline">Manage Your Money Wisely</span>
+      </div>
+    </div>
+    <div class="nav-links" id="nav-links">
+      <a class="nav-link active" data-page="dashboard">Dashboard</a>
+      <a class="nav-link" data-page="income">Income</a>
+      <a class="nav-link" data-page="expense">Expense</a>
+      <a class="nav-link" data-page="planned">Planned</a>
+      <a class="nav-link" data-page="budget">Budget & Goals</a>
+      <a class="nav-link" data-page="reports">Reports</a>
+      <a class="nav-link" data-page="settings">Settings</a>
+    </div>
+    <div class="nav-balance">
+      <span class="balance-label">Net Balance</span>
+      <span class="balance-amount" id="nav-balance">$0.00</span>
+    </div>
+    <button class="hamburger" id="hamburger" onclick="toggleMobileNav()">
+      <span></span><span></span><span></span>
+    </button>
+  </nav>
+
+  <!-- PAGE WRAPPER -->
+  <main class="page-wrapper">
+
+    <!-- ======== PAGE 1: DASHBOARD ======== -->
+    <section class="page active" id="page-dashboard">
+      <div class="page-header">
+        <div>
+          <h2 class="page-title">Dashboard</h2>
+          <p class="page-sub">Your financial overview at a glance</p>
+        </div>
+        <div class="page-actions">
+          <button class="btn-secondary" onclick="openModal('income-modal')">+ Add Income</button>
+          <button class="btn-primary" onclick="openModal('expense-modal')">+ Add Expense</button>
+        </div>
+      </div>
+
+      <!-- Summary Cards -->
+      <div class="cards-grid">
+        <div class="card card-glow">
+          <div class="card-icon income-icon">↑</div>
+          <div class="card-label">Total Income</div>
+          <div class="card-value" id="dash-income">$0.00</div>
+          <div class="card-trend" id="dash-income-trend"></div>
+        </div>
+        <div class="card">
+          <div class="card-icon expense-icon">↓</div>
+          <div class="card-label">Total Expenses</div>
+          <div class="card-value" id="dash-expense">$0.00</div>
+          <div class="card-trend" id="dash-expense-trend"></div>
+        </div>
+        <div class="card">
+          <div class="card-icon savings-icon">◈</div>
+          <div class="card-label">Net Savings</div>
+          <div class="card-value" id="dash-savings">$0.00</div>
+        </div>
+        <div class="card">
+          <div class="card-icon forecast-icon">◆</div>
+          <div class="card-label">Forecast Balance</div>
+          <div class="card-value" id="dash-forecast">$0.00</div>
+          <div class="card-sub">After planned expenses</div>
+        </div>
+      </div>
+
+      <!-- AI Insights -->
+      <div class="section-title">AI Insights</div>
+      <div class="insights-grid">
+        <div class="insight-card">
+          <div class="insight-label">Expected Monthly Income</div>
+          <div class="insight-value" id="ai-expected-income">$0.00</div>
+        </div>
+        <div class="insight-card">
+          <div class="insight-label">Fixed Expenses</div>
+          <div class="insight-value" id="ai-fixed-expense">$0.00</div>
+        </div>
+        <div class="insight-card">
+          <div class="insight-label">Avg Daily Spending</div>
+          <div class="insight-value" id="ai-daily-spend">$0.00</div>
+        </div>
+        <div class="insight-card insight-wide">
+          <div class="insight-label">💡 Smart Recommendations</div>
+          <ul class="recommendations" id="ai-recommendations">
+            <li>Add income and expense data to get personalized insights.</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Charts -->
+      <div class="charts-grid">
+        <div class="chart-card">
+          <div class="chart-title">Income vs Expenses</div>
+          <canvas id="lineChart"></canvas>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">Expense by Category</div>
+          <canvas id="pieChart"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======== PAGE 2: INCOME ======== -->
+    <section class="page" id="page-income">
+      <div class="page-header">
+        <div>
+          <h2 class="page-title">Income Management</h2>
+          <p class="page-sub">Track all your income sources</p>
+        </div>
+        <button class="btn-primary" onclick="openModal('income-modal')">+ Add Income</button>
+      </div>
+      <div class="cards-grid cards-grid-2">
+        <div class="card card-glow">
+          <div class="card-icon income-icon">↑</div>
+          <div class="card-label">Total Income</div>
+          <div class="card-value" id="inc-total">$0.00</div>
+        </div>
+        <div class="card">
+          <div class="card-icon">↻</div>
+          <div class="card-label">Recurring Income</div>
+          <div class="card-value" id="inc-recurring">$0.00</div>
+        </div>
+      </div>
+      <div class="table-card">
+        <div class="table-header">
+          <div class="table-title">Income History</div>
+          <input class="search-input" type="text" placeholder="Search income..." oninput="filterTable('income-table', this.value)"/>
+        </div>
+        <div class="table-wrap">
+          <table id="income-table">
+            <thead>
+              <tr><th>Date</th><th>Source</th><th>Category</th><th>Amount</th><th>Type</th><th>Notes</th><th>Actions</th></tr>
+            </thead>
+            <tbody id="income-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======== PAGE 3: EXPENSE ======== -->
+    <section class="page" id="page-expense">
+      <div class="page-header">
+        <div>
+          <h2 class="page-title">Expense Management</h2>
+          <p class="page-sub">Monitor and control your spending</p>
+        </div>
+        <button class="btn-primary" onclick="openModal('expense-modal')">+ Add Expense</button>
+      </div>
+      <div class="cards-grid">
+        <div class="card">
+          <div class="card-icon expense-icon">↓</div>
+          <div class="card-label">This Month</div>
+          <div class="card-value" id="exp-month">$0.00</div>
+        </div>
+        <div class="card">
+          <div class="card-icon expense-icon">∑</div>
+          <div class="card-label">Total Expense</div>
+          <div class="card-value" id="exp-total">$0.00</div>
+        </div>
+        <div class="card">
+          <div class="card-icon">🏆</div>
+          <div class="card-label">Top Category</div>
+          <div class="card-value" id="exp-top-cat">—</div>
+        </div>
+      </div>
+      <div class="section-title">Category Breakdown</div>
+      <div id="category-breakdown" class="breakdown-grid"></div>
+      <div class="table-card">
+        <div class="table-header">
+          <div class="table-title">Expense History</div>
+          <input class="search-input" type="text" placeholder="Search expenses..." oninput="filterTable('expense-table', this.value)"/>
+        </div>
+        <div class="table-wrap">
+          <table id="expense-table">
+            <thead>
+              <tr><th>Date</th><th>Category</th><th>Amount</th><th>Payment</th><th>Notes</th><th>Actions</th></tr>
+            </thead>
+            <tbody id="expense-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======== PAGE 4: PLANNED ======== -->
+    <section class="page" id="page-planned">
+      <div class="page-header">
+        <div>
+          <h2 class="page-title">Planned Expenses</h2>
+          <p class="page-sub">Schedule and track future payments</p>
+        </div>
+        <button class="btn-primary" onclick="openModal('planned-modal')">+ Add Planned</button>
+      </div>
+      <div class="cards-grid">
+        <div class="card">
+          <div class="card-icon">📋</div>
+          <div class="card-label">Total Planned</div>
+          <div class="card-value" id="plan-total">$0.00</div>
+        </div>
+        <div class="card card-glow">
+          <div class="card-icon income-icon">✓</div>
+          <div class="card-label">Paid Amount</div>
+          <div class="card-value" id="plan-paid">$0.00</div>
+        </div>
+        <div class="card">
+          <div class="card-icon">⏳</div>
+          <div class="card-label">Upcoming</div>
+          <div class="card-value" id="plan-upcoming">$0.00</div>
+        </div>
+        <div class="card">
+          <div class="card-icon">↻</div>
+          <div class="card-label">Monthly Recurring</div>
+          <div class="card-value" id="plan-recurring">$0.00</div>
+        </div>
+      </div>
+      <div class="table-card">
+        <div class="table-header">
+          <div class="table-title">Planned Expenses</div>
+          <input class="search-input" type="text" placeholder="Search planned..." oninput="filterTable('planned-table', this.value)"/>
+        </div>
+        <div class="table-wrap">
+          <table id="planned-table">
+            <thead>
+              <tr><th>Name</th><th>Category</th><th>Amount</th><th>Due Date</th><th>Frequency</th><th>Status</th><th>Actions</th></tr>
+            </thead>
+            <tbody id="planned-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======== PAGE 5: BUDGET & GOALS ======== -->
+    <section class="page" id="page-budget">
+      <div class="page-header">
+        <div>
+          <h2 class="page-title">Budget & Goals</h2>
+          <p class="page-sub">Set targets and track your financial goals</p>
+        </div>
+        <button class="btn-primary" onclick="openModal('budget-modal')">Update Budget</button>
+      </div>
+      <div class="cards-grid">
+        <div class="card card-glow">
+          <div class="card-icon income-icon">↑</div>
+          <div class="card-label">Yearly Income</div>
+          <div class="card-value" id="bud-yearly-income">$0.00</div>
+        </div>
+        <div class="card">
+          <div class="card-icon expense-icon">↓</div>
+          <div class="card-label">Yearly Expense</div>
+          <div class="card-value" id="bud-yearly-expense">$0.00</div>
+        </div>
+        <div class="card">
+          <div class="card-icon savings-icon">◈</div>
+          <div class="card-label">Yearly Savings</div>
+          <div class="card-value" id="bud-yearly-savings">$0.00</div>
+        </div>
+      </div>
+      <!-- Savings Progress -->
+      <div class="goals-section">
+        <div class="goal-item">
+          <div class="goal-header">
+            <span>Savings Target</span>
+            <span id="savings-pct">0%</span>
+          </div>
+          <div class="progress-bar-wrap"><div class="progress-bar savings-bar" id="savings-prog"></div></div>
+          <div class="goal-detail"><span id="savings-achieved">$0</span> of <span id="savings-target-lbl">$0</span></div>
+        </div>
+        <div class="goal-item">
+          <div class="goal-header">
+            <span>Investment Target</span>
+            <span id="invest-pct">0%</span>
+          </div>
+          <div class="progress-bar-wrap"><div class="progress-bar invest-bar" id="invest-prog"></div></div>
+          <div class="goal-detail"><span id="invest-achieved">$0</span> of <span id="invest-target-lbl">$0</span></div>
+        </div>
+      </div>
+      <!-- Monthly Cards -->
+      <div class="section-title">Monthly Milestones</div>
+      <div class="monthly-grid" id="monthly-grid"></div>
+    </section>
+
+    <!-- ======== PAGE 6: REPORTS ======== -->
+    <section class="page" id="page-reports">
+      <div class="page-header">
+        <div>
+          <h2 class="page-title">Reports & Analytics</h2>
+          <p class="page-sub">Deep dive into your financial data</p>
+        </div>
+        <div class="page-actions">
+          <select class="select-input" id="report-month" onchange="updateReports()">
+            <option value="all">All Time</option>
+          </select>
+          <button class="btn-secondary" onclick="exportCSV()">Export CSV</button>
+          <button class="btn-primary" onclick="exportPDF()">Export PDF</button>
+        </div>
+      </div>
+      <div class="cards-grid">
+        <div class="card card-glow">
+          <div class="card-label">Total Income</div>
+          <div class="card-value" id="rep-income">$0.00</div>
+          <div class="card-sub" id="rep-income-count"></div>
+        </div>
+        <div class="card">
+          <div class="card-label">Total Expense</div>
+          <div class="card-value" id="rep-expense">$0.00</div>
+          <div class="card-sub" id="rep-expense-count"></div>
+        </div>
+        <div class="card">
+          <div class="card-label">Net Savings</div>
+          <div class="card-value" id="rep-savings">$0.00</div>
+        </div>
+        <div class="card">
+          <div class="card-label">Avg Daily Expense</div>
+          <div class="card-value" id="rep-daily">$0.00</div>
+        </div>
+      </div>
+      <div class="charts-grid charts-grid-3">
+        <div class="chart-card">
+          <div class="chart-title">Income vs Expense</div>
+          <canvas id="repLineChart"></canvas>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">Income Categories</div>
+          <canvas id="repIncomePie"></canvas>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">Expense by Category</div>
+          <canvas id="repExpenseBar"></canvas>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">Payment Modes</div>
+          <canvas id="repPaymentPie"></canvas>
+        </div>
+        <div class="chart-card chart-card-wide">
+          <div class="chart-title">Category Progress</div>
+          <div id="rep-category-progress"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======== PAGE 7: SETTINGS ======== -->
+    <section class="page" id="page-settings">
+      <div class="page-header">
+        <div>
+          <h2 class="page-title">Settings</h2>
+          <p class="page-sub">Customize your experience</p>
+        </div>
+      </div>
+      <div class="settings-grid">
+        <!-- General -->
+        <div class="settings-card">
+          <div class="settings-section-title">General</div>
+          <div class="setting-row">
+            <div>
+              <div class="setting-label">Currency</div>
+              <div class="setting-desc">Choose your preferred currency</div>
+            </div>
+            <select class="select-input" id="currency-sel" onchange="updateCurrencySymbol(this.value)">
+              <option value="$">USD ($)</option>
+              <option value="€">EUR (€)</option>
+              <option value="£">GBP (£)</option>
+              <option value="₹">INR (₹)</option>
+              <option value="¥">JPY (¥)</option>
+            </select>
+          </div>
+          <div class="setting-row">
+            <div>
+              <div class="setting-label">Date Format</div>
+              <div class="setting-desc">Display format for dates</div>
+            </div>
+            <select class="select-input" id="date-format-sel" onchange="saveSetting('dateFormat', this.value)">
+              <option value="MM/DD/YYYY">MM/DD/YYYY</option>
+              <option value="DD/MM/YYYY">DD/MM/YYYY</option>
+              <option value="YYYY-MM-DD">YYYY-MM-DD</option>
+            </select>
+          </div>
+        </div>
+        <!-- Theme -->
+        <div class="settings-card">
+          <div class="settings-section-title">Theme</div>
+          <div class="setting-row">
+            <div>
+              <div class="setting-label">Dark Mode</div>
+              <div class="setting-desc">Toggle between light and dark</div>
+            </div>
+            <label class="toggle">
+              <input type="checkbox" id="dark-mode-toggle" onchange="toggleTheme(this.checked)" checked/>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <!-- AI Theme Picker -->
+        <div class="settings-card settings-card-full">
+          <div class="settings-section-title">✨ AI Theme Studio</div>
+          <p class="setting-desc" style="margin-bottom:1.25rem;">
+            Type a theme vibe and apply it instantly. CSS variables update live across the entire app.
+          </p>
+
+          <!-- Input row -->
+          <div class="ai-theme-row">
+            <input
+              type="text"
+              id="ai-theme-input"
+              class="ai-theme-input"
+              placeholder="e.g. ocean blue, sunset orange, cyberpunk…"
+              onkeydown="if(event.key==='Enter') requestAITheme()"
+            />
+            <button class="btn-primary" onclick="requestAITheme()">Apply Theme</button>
+            <button class="btn-secondary" onclick="resetCustomTheme()">Reset</button>
+          </div>
+
+          <!-- Preset chips -->
+          <div class="theme-chips" id="theme-chips"></div>
+        </div>
+        <!-- Notifications -->
+        <div class="settings-card">
+          <div class="settings-section-title">Notifications</div>
+          <div class="setting-row">
+            <div>
+              <div class="setting-label">Budget Reminders</div>
+              <div class="setting-desc">Get alerts when near budget limits</div>
+            </div>
+            <label class="toggle">
+              <input type="checkbox" id="notif-toggle" onchange="saveSetting('notifications', this.checked)"/>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <div class="setting-row">
+            <div>
+              <div class="setting-label">Bill Reminders</div>
+              <div class="setting-desc">Alerts for upcoming planned expenses</div>
+            </div>
+            <label class="toggle">
+              <input type="checkbox" id="bill-toggle" onchange="saveSetting('billReminders', this.checked)"/>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+        <!-- Data Management -->
+        <div class="settings-card">
+          <div class="settings-section-title">Data Management</div>
+          <div class="data-actions">
+            <button class="btn-secondary" onclick="exportAllData()">Export All Data</button>
+            <button class="btn-secondary" onclick="downloadBackup()">Download Backup JSON</button>
+            <button class="btn-danger" onclick="clearAllData()">Clear All Data</button>
+            <button class="btn-danger" onclick="deleteAccount()">Delete Account Permanently</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main><!-- end page-wrapper -->
+</div><!-- end app -->
+
+<!-- ===================== MODALS ===================== -->
+
+<!-- Income Modal -->
+<div class="modal-overlay" id="income-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="income-modal-title">Add Income</h3>
+      <button class="modal-close" onclick="closeModal('income-modal')">✕</button>
+    </div>
+    <form id="income-form" onsubmit="saveIncome(event)">
+      <input type="hidden" id="income-edit-id"/>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Date</label>
+          <input type="date" id="inc-date" required/>
+        </div>
+        <div class="form-group">
+          <label>Source Name</label>
+          <input type="text" id="inc-source" placeholder="e.g. Salary, Freelance" required/>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Category</label>
+          <select id="inc-category" required>
+            <option value="">Select category</option>
+            <option>Salary</option>
+            <option>Freelance</option>
+            <option>Business</option>
+            <option>Investment</option>
+            <option>Rental</option>
+            <option>Gift</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Amount</label>
+          <input type="number" id="inc-amount" placeholder="0.00" min="0" step="0.01" required/>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Type</label>
+        <select id="inc-type">
+          <option value="one-time">One-time</option>
+          <option value="recurring">Recurring</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Notes</label>
+        <textarea id="inc-notes" placeholder="Optional notes..."></textarea>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary" onclick="closeModal('income-modal')">Cancel</button>
+        <button type="submit" class="btn-primary">Save Income</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Expense Modal -->
+<div class="modal-overlay" id="expense-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="expense-modal-title">Add Expense</h3>
+      <button class="modal-close" onclick="closeModal('expense-modal')">✕</button>
+    </div>
+    <form id="expense-form" onsubmit="saveExpense(event)">
+      <input type="hidden" id="expense-edit-id"/>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Date</label>
+          <input type="date" id="exp-date" required/>
+        </div>
+        <div class="form-group">
+          <label>Category</label>
+          <select id="exp-category" required>
+            <option value="">Select category</option>
+            <option>Food & Dining</option>
+            <option>Transportation</option>
+            <option>Housing</option>
+            <option>Utilities</option>
+            <option>Healthcare</option>
+            <option>Entertainment</option>
+            <option>Shopping</option>
+            <option>Education</option>
+            <option>Insurance</option>
+            <option>Savings</option>
+            <option>Investment</option>
+            <option>Other</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Amount</label>
+          <input type="number" id="exp-amount" placeholder="0.00" min="0" step="0.01" required/>
+        </div>
+        <div class="form-group">
+          <label>Payment Mode</label>
+          <select id="exp-payment">
+            <option>Cash</option>
+            <option>Credit Card</option>
+            <option>Debit Card</option>
+            <option>Bank Transfer</option>
+            <option>UPI</option>
+            <option>Other</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Notes</label>
+        <textarea id="exp-notes" placeholder="Optional notes..."></textarea>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary" onclick="closeModal('expense-modal')">Cancel</button>
+        <button type="submit" class="btn-primary">Save Expense</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Planned Modal -->
+<div class="modal-overlay" id="planned-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="planned-modal-title">Add Planned Expense</h3>
+      <button class="modal-close" onclick="closeModal('planned-modal')">✕</button>
+    </div>
+    <form id="planned-form" onsubmit="savePlanned(event)">
+      <input type="hidden" id="planned-edit-id"/>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Name</label>
+          <input type="text" id="plan-name" placeholder="e.g. Rent, Netflix" required/>
+        </div>
+        <div class="form-group">
+          <label>Category</label>
+          <select id="plan-category">
+            <option>Housing</option>
+            <option>Utilities</option>
+            <option>Subscription</option>
+            <option>Insurance</option>
+            <option>Loan EMI</option>
+            <option>Education</option>
+            <option>Other</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Amount</label>
+          <input type="number" id="plan-amount" placeholder="0.00" min="0" step="0.01" required/>
+        </div>
+        <div class="form-group">
+          <label>Due Date</label>
+          <input type="date" id="plan-due" required/>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Frequency</label>
+          <select id="plan-frequency">
+            <option>One-time</option>
+            <option>Monthly</option>
+            <option>Quarterly</option>
+            <option>Yearly</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Status</label>
+          <select id="plan-status">
+            <option value="upcoming">Upcoming</option>
+            <option value="paid">Paid</option>
+            <option value="overdue">Overdue</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Notes</label>
+        <textarea id="plan-notes" placeholder="Optional notes..."></textarea>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary" onclick="closeModal('planned-modal')">Cancel</button>
+        <button type="submit" class="btn-primary">Save Planned</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Budget Modal -->
+<div class="modal-overlay" id="budget-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Update Budget & Goals</h3>
+      <button class="modal-close" onclick="closeModal('budget-modal')">✕</button>
+    </div>
+    <form id="budget-form" onsubmit="saveBudget(event)">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Year</label>
+          <input type="number" id="bud-year" value="2024" min="2020" max="2030" required/>
+        </div>
+        <div class="form-group">
+          <label>Monthly Milestone ($)</label>
+          <input type="number" id="bud-milestone" placeholder="0.00" min="0" step="0.01"/>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Savings Target ($)</label>
+          <input type="number" id="bud-savings" placeholder="0.00" min="0" step="0.01"/>
+        </div>
+        <div class="form-group">
+          <label>Investment Target ($)</label>
+          <input type="number" id="bud-invest" placeholder="0.00" min="0" step="0.01"/>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary" onclick="closeModal('budget-modal')">Cancel</button>
+        <button type="submit" class="btn-primary">Save Goals</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Toast Notification -->
+<div id="toast" class="toast hidden"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
